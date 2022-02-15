@@ -2,7 +2,7 @@
 #----------------------------------------------------------------------
 cmake_minimum_required(VERSION 3.5.1)
 
-project(grpc-perf C CXX)
+project(ni-grpc-sideband C CXX)
 
 if(NOT MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")

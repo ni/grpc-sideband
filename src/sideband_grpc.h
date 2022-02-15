@@ -7,21 +7,21 @@
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
-int64_t InitMonikerSidebandData(const BeginMonikerSidebandStreamResponse& initResponse)
+inline int64_t InitMonikerSidebandData(const BeginMonikerSidebandStreamResponse& initResponse)
 {
     return InitClientSidebandData(initResponse.connection_url(), (::SidebandStrategy)initResponse.strategy(), initResponse.sideband_identifier(), initResponse.buffer_size());
 }
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
-int64_t InitClientSidebandData(const BeginMonikerSidebandStreamResponse& response)
+inline int64_t InitClientSidebandData(const BeginMonikerSidebandStreamResponse& response)
 {
     return InitClientSidebandData(response.connection_url(), (::SidebandStrategy)response.strategy(), response.sideband_identifier(), response.buffer_size());    
 }
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
-bool ReadSidebandMessage(int64_t dataToken, google::protobuf::MessageLite* writeRequest)
+inline bool ReadSidebandMessage(int64_t dataToken, google::protobuf::MessageLite* message)
 {    
     auto sidebandData = reinterpret_cast<SidebandData*>(dataToken);
     bool success = false;
@@ -45,7 +45,7 @@ bool ReadSidebandMessage(int64_t dataToken, google::protobuf::MessageLite* write
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
-int64_t WriteSidebandMessage(int64_t dataToken, const google::protobuf::MessageLite& response)
+inline int64_t WriteSidebandMessage(int64_t dataToken, const google::protobuf::MessageLite& message)
 {
     auto sidebandData = reinterpret_cast<SidebandData*>(dataToken);
     auto byteSize = message.ByteSizeLong();
