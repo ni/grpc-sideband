@@ -3,6 +3,7 @@
 #include <map>
 #include <cassert>
 #include <iostream>
+#include <atomic>
 #include "sideband_data.h"
 #include "sideband_internal.h"
 
@@ -53,7 +54,7 @@ std::string NextConnectionId()
 {
     char buffer[20];
     auto id = ++_nextId;
-    sprintf_s(buffer, "ID:%10d", id);
+    sprintf(buffer, "ID:%10d", id);
     return buffer;
 }
 
