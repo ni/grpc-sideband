@@ -2,19 +2,20 @@
 //---------------------------------------------------------------------
 #pragma once
 
+#include <data_moniker.pb.h>
 #include <sideband_data.h>
 #include <sideband_internal.h>
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
-inline int64_t InitMonikerSidebandData(const BeginMonikerSidebandStreamResponse& initResponse)
+inline int64_t InitMonikerSidebandData(const ni::data_monikers::v1::BeginMonikerSidebandStreamResponse& initResponse)
 {
     return InitClientSidebandData(initResponse.connection_url(), (::SidebandStrategy)initResponse.strategy(), initResponse.sideband_identifier(), initResponse.buffer_size());
 }
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
-inline int64_t InitClientSidebandData(const BeginMonikerSidebandStreamResponse& response)
+inline int64_t InitClientSidebandData(const ni::data_monikers::v1::BeginMonikerSidebandStreamResponse& response)
 {
     return InitClientSidebandData(response.connection_url(), (::SidebandStrategy)response.strategy(), response.sideband_identifier(), response.buffer_size());    
 }
