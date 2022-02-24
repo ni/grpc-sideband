@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cassert>
 #include <sys/types.h> 
+#include <cstring>
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -117,29 +118,31 @@ void SocketSidebandData::ConnectToSocket(std::string address, std::string port, 
     if (_socket < 0) 
     {
         std::cout << "ERROR opening socket" << std::endl;
-        return 0;
+        return;
     }
     server = gethostbyname(address.c_str());
     if (server == NULL)
     {
         std::cout << "ERROR, no such host" << std::endl;
-        return 0;
+        return;
     }
-    bzero((char*)&serv_addr, sizeof(serv_addr));
+    memset((char*)&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
-    bcopy((char*)server->h_addr, (char*)&serv_addr.sin_addr.s_addr, server->h_length);
+    memcpy((char*)server->h_addr, (char*)&serv_addr.sin_addr.s_addr, server->h_length);
     serv_addr.sin_port = htons(portno);
     if (connect(_socket, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
     { 
         std::cout << "ERROR connecting" << std::endl;
-        return -1;
+        return;
     }
 #endif
 
     if (lowLatency)
     {
+#ifdef _WIN32
         u_long iMode = 1;
         ioctlsocket(_socket, FIONBIO, &iMode);
+#endif
         int yes = 1;
         int result = setsockopt(_socket, IPPROTO_TCP, TCP_NODELAY, (char*)&yes, sizeof(int));
     }
@@ -178,12 +181,18 @@ bool SocketSidebandData::ReadFromSocket(void* buffer, int64_t numBytes)
     while (remainingBytes > 0)
     {        
         int n;
-        int wsaError;
+        bool recvAgain = true;
         do
         {
+#ifdef _WIN32
+            n = recv(_socket, start, remainingBytes, 0);
+            auto wsaError = WSAGetLastError();
+            recvAgain = n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK || wsaError == WSAEWOULDBLOCK);
+#else
             n = recv(_socket, start, remainingBytes, 0); // MSG_NOWAIT
-            wsaError = WSAGetLastError();
-        } while (n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK || wsaError == WSAEWOULDBLOCK));
+            recvAgain = n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK);
+#endif
+        } while (recvAgain);
 
         if (n < 0)
         {
@@ -248,8 +257,10 @@ SocketSidebandData* SocketSidebandData::InitFromConnection(int socket)
 {
     if (_nextConnectLowLatency)
     {
+#ifdef _WIN32
         u_long iMode = 1;
         ioctlsocket(socket, FIONBIO, &iMode);
+#endif
         int yes = 1;
         int result = setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, (char*)&yes, sizeof(int));
     }
