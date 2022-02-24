@@ -8,14 +8,14 @@
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
-inline int64_t InitMonikerSidebandData(const ni::data_monikers::v1::BeginMonikerSidebandStreamResponse& initResponse)
+inline int64_t InitMonikerSidebandData(const ni::data_monikers::BeginMonikerSidebandStreamResponse& initResponse)
 {
     return InitClientSidebandData(initResponse.connection_url(), (::SidebandStrategy)initResponse.strategy(), initResponse.sideband_identifier(), initResponse.buffer_size());
 }
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
-inline int64_t InitClientSidebandData(const ni::data_monikers::v1::BeginMonikerSidebandStreamResponse& response)
+inline int64_t InitClientSidebandData(const ni::data_monikers::BeginMonikerSidebandStreamResponse& response)
 {
     return InitClientSidebandData(response.connection_url(), (::SidebandStrategy)response.strategy(), response.sideband_identifier(), response.buffer_size());    
 }
