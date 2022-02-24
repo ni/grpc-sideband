@@ -33,6 +33,10 @@
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
+static std::string s_SidebandSocketsAddress;
+
+//---------------------------------------------------------------------
+//---------------------------------------------------------------------
 Semaphore SocketSidebandData::_connectQueue;
 bool SocketSidebandData::_nextConnectLowLatency;
 int64_t SocketSidebandData::_nextConnectBufferSize;
@@ -332,6 +336,10 @@ int64_t SocketSidebandData::ReadLengthPrefix()
 //---------------------------------------------------------------------
 std::string GetSocketsAddress()
 {
+    if (s_SidebandSocketsAddress.length() > 0)
+    {
+        return s_SidebandSocketsAddress;
+    }
     auto rdmaAddress = GetRdmaAddress();
     if (rdmaAddress.length() > 0)
     {
@@ -342,7 +350,7 @@ std::string GetSocketsAddress()
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
-int RunSidebandSocketsAccept(int port)
+int RunSidebandSocketsAccept(std::string address, int port)
 {
     int sockfd, newsockfd;
     socklen_t clilen;
@@ -352,6 +360,8 @@ int RunSidebandSocketsAccept(int port)
     WSADATA wsaData {};
     WSAStartup(MAKEWORD(2,2), &wsaData);
 #endif
+
+    s_SidebandSocketsAddress = address;
 
     // create a socket
     sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);

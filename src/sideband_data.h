@@ -32,7 +32,7 @@ void CloseSidebandData(int64_t dataToken);
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
-int RunSidebandSocketsAccept(int port);
+int RunSidebandSocketsAccept(std::string address, int port);
 int AcceptSidebandRdmaSendRequests();
 int AcceptSidebandRdmaReceiveRequests();
 
