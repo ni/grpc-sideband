@@ -1,7 +1,7 @@
 # gRPC sideband data support
 
 ## Overview
-the gRPC sideband library is intended to be used in conjunction with a standard gRPC service to provide low latency or high bandwidth communication between the client an server.  In most cases gRPC streaming support is sufficient but in cases where large amounts of data (>1-2GB/s) needs to be streamed, or the communication needs to happen with very low latency (<30us).
+the gRPC sideband library is intended to be used in conjunction with a standard gRPC service to provide low latency or high bandwidth communication between the client and server.  In most cases gRPC streaming support is sufficient but in cases where large amounts of data (>1-2GB/s) needs to be streamed, or the communication needs to happen with very low latency (<30us).
 
 The sideband channel supports a variety of methods for communication:
 * SHARED_MEMORY - use a shared memory region for communcation.  This works when both the client and the server are on the same computer.
@@ -10,7 +10,7 @@ The sideband channel supports a variety of methods for communication:
 * SOCKETS_LOW_LATENCY - uses a standard TCP socket that has been configured for low latency use. This will comsume more CPU than a standard socket setup.
 * HYPERVISOR_SOCKETS - Not currently implemented.
 * RDMA - Uses RDMA to perform the data transfer.  Network cards must both support RDMA.
-* RDMA_LOW_LATENCY - Users RDMA with a low latency communcation model for the data transfer. This will consume more CPU than standard RDMA communication.
+* RDMA_LOW_LATENCY - Uses RDMA with a low latency communcation model for the data transfer. This will consume more CPU than standard RDMA communication.
 
 This project supports Windows, Linux and Linux RT.
 
