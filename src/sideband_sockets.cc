@@ -350,7 +350,7 @@ std::string GetSocketsAddress()
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
-int RunSidebandSocketsAccept(std::string address, int port)
+int32_t _SIDEBAND_FUNC RunSidebandSocketsAccept(const char* address, int port)
 {
     int sockfd, newsockfd;
     socklen_t clilen;

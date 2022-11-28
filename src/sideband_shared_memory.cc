@@ -5,21 +5,6 @@
 #include <sideband_data.h>
 #include <sideband_internal.h>
 
-#ifdef _WIN32
-#include <fast_memcpy.h>
-#endif
-
-//---------------------------------------------------------------------
-//---------------------------------------------------------------------
-bool _useFastMemcpy = false;
-
-//---------------------------------------------------------------------
-//---------------------------------------------------------------------
-void SetFastMemcpy(bool fastMemcpy)
-{
-    _useFastMemcpy = fastMemcpy;
-}
-
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
 SharedMemorySidebandData::SharedMemorySidebandData(const std::string& id, int64_t bufferSize) :
@@ -107,18 +92,7 @@ bool SharedMemorySidebandData::Write(const uint8_t* bytes, int64_t bytecount)
     {
         return false;
     }
-#ifdef _WIN32
-    if (_useFastMemcpy)
-    {
-        memcpy_fast(ptr, bytes, bytecount);
-    }
-    else
-    {
-        memcpy(ptr, bytes, bytecount);
-    }
-#else
-        memcpy(ptr, bytes, bytecount);
-#endif
+    memcpy(ptr, bytes, bytecount);
     return true;
 }
 
@@ -131,18 +105,7 @@ bool SharedMemorySidebandData::Read(uint8_t* bytes, int64_t bufferSize, int64_t*
     {
         return false;
     }
-#ifdef _WIN32
-    if (_useFastMemcpy)
-    {
-        memcpy_fast(bytes, ptr, bufferSize);
-    }
-    else
-    {
-        memcpy(bytes, ptr, bufferSize);
-    }
-#else
     memcpy(bytes, ptr, bufferSize);
-#endif
     return true;
 }
 
@@ -157,18 +120,7 @@ bool SharedMemorySidebandData::WriteLengthPrefixed(const uint8_t* bytes, int64_t
     }
     *reinterpret_cast<int64_t*>(ptr) = byteCount;
     ptr += sizeof(int64_t);
-#ifdef _WIN32
-    if (_useFastMemcpy)
-    {
-        memcpy_fast(ptr, bytes, byteCount);
-    }
-    else
-    {
-        memcpy(ptr, bytes, byteCount);
-    }
-#else
     memcpy(ptr, bytes, byteCount);
-#endif
     return true;
 }
 
@@ -181,18 +133,7 @@ bool SharedMemorySidebandData::ReadFromLengthPrefixed(uint8_t* bytes, int64_t bu
     {
         return false;
     }
-#ifdef _WIN32
-    if (_useFastMemcpy)
-    {
-        memcpy_fast(bytes, ptr, bufferSize);
-    }
-    else
-    {
-        memcpy(bytes, ptr, bufferSize);
-    }
-#else
     memcpy(bytes, ptr, bufferSize);
-#endif
     return true;
 }
 

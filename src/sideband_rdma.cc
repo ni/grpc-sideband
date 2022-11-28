@@ -5,7 +5,7 @@
 //#include <vector>
 #include <cassert>
 #include <string>
-#include <ni-rdma.h>
+#include <easyrdma.h>
 #include <sideband_data.h>
 #include <sideband_internal.h>
 
@@ -19,7 +19,7 @@ int MaxConcurrentTransactions = 1;
 class RdmaSidebandDataImp
 {
 public:
-    RdmaSidebandDataImp(nirdma_Session connectedWriteSession, nirdma_Session connectedReadSession, bool lowLatency, int64_t bufferSize);
+    RdmaSidebandDataImp(easyrdma_Session connectedWriteSession, easyrdma_Session connectedReadSession, bool lowLatency, int64_t bufferSize);
     ~RdmaSidebandDataImp();
 
     bool Write(const uint8_t* bytes, int64_t bytecount);
@@ -37,21 +37,21 @@ public:
     int64_t BufferSize();    
 
     static void QueueSidebandConnection(::SidebandStrategy strategy, const std::string& id, bool waitForReader, bool waitForWriter, int64_t bufferSize);
-    static RdmaSidebandData* InitFromConnection(nirdma_Session connectedSession, bool isWriteSession);
-    static RdmaSidebandData* ClientInitFromConnection(nirdma_Session connectedWriteSession, nirdma_Session connectedReadSession, const std::string& id, bool lowLatency, int64_t bufferSize);
+    static RdmaSidebandData* InitFromConnection(easyrdma_Session connectedSession, bool isWriteSession);
+    static RdmaSidebandData* ClientInitFromConnection(easyrdma_Session connectedWriteSession, easyrdma_Session connectedReadSession, const std::string& id, bool lowLatency, int64_t bufferSize);
 
 private:
     bool _lowLatency;
-    nirdma_Session _connectedWriteSession;
-    nirdma_Session _connectedReadSession;
-    nirdma_InternalBufferRegion _writeBuffer;
-    nirdma_InternalBufferRegion _readBuffer;
+    easyrdma_Session _connectedWriteSession;
+    easyrdma_Session _connectedReadSession;
+    easyrdma_InternalBufferRegion _writeBuffer;
+    easyrdma_InternalBufferRegion _readBuffer;
     int64_t _bufferSize;
 
 private:    
     static Semaphore _rdmaConnectQueue;
-    static nirdma_Session _pendingWriteSession;
-    static nirdma_Session _pendingReadSession;
+    static easyrdma_Session _pendingWriteSession;
+    static easyrdma_Session _pendingReadSession;
     static bool _nextConnectLowLatency;
     static bool _waitForReaderConnection;
     static bool _waitForWriteConnection;
@@ -94,42 +94,42 @@ RdmaSidebandData* RdmaSidebandData::ClientInit(const std::string& sidebandServic
 
     std::cout << "Client connetion using local address: " << localAddress << std::endl;
 
-    nirdma_Session clientReadSession = nirdma_InvalidSession;
-    auto result = nirdma_CreateConnectorSession(localAddress.c_str(), 0, &clientReadSession);   
-    if (result != nirdma_Error_Success)
+    easyrdma_Session clientReadSession = easyrdma_InvalidSession;
+    auto result = easyrdma_CreateConnectorSession(localAddress.c_str(), 0, &clientReadSession);   
+    if (result != easyrdma_Error_Success)
     {
         std::cout << "Failed to create connector session: " << result << std::endl;
     }
     std::cout << "Connecting to: " << tokens[0] << ":" << tokens[1] << " For Receive" << std::endl;
-    result = nirdma_Connect(clientReadSession, nirdma_Direction_Receive, tokens[0].c_str(), std::stoi(tokens[1]), timeoutMs);
-    if (result != nirdma_Error_Success)
+    result = easyrdma_Connect(clientReadSession, easyrdma_Direction_Receive, tokens[0].c_str(), std::stoi(tokens[1]), timeoutMs);
+    if (result != easyrdma_Error_Success)
     {
         char errorMessage[4096];
-        nirdma_GetLastErrorString(errorMessage, 4096);
+        easyrdma_GetLastErrorString(errorMessage, 4096);
         std::cout << "Failed to connect: " << result << " , " << errorMessage << std::endl;
     }
-    assert(result == nirdma_Error_Success);
+    assert(result == easyrdma_Error_Success);
 
     if (lowLatency)
     {
         bool usePooling = true;
-        result = nirdma_SetProperty(clientReadSession, nirdma_Property_UseRxPolling, &usePooling, sizeof(bool));
-        if (result != nirdma_Error_Success)
+        result = easyrdma_SetProperty(clientReadSession, easyrdma_Property_UseRxPolling, &usePooling, sizeof(bool));
+        if (result != easyrdma_Error_Success)
         {
             std::cout << "Failed to connect: " << result << std::endl;
         }
-        assert(result == nirdma_Error_Success);
+        assert(result == easyrdma_Error_Success);
     }
 
     std::cout << "Connecting to: " << tokens[0] << ":" << tokens[1] << " For Send" << std::endl;
-    nirdma_Session clientWriteSession = nirdma_InvalidSession;
-    result = nirdma_CreateConnectorSession(localAddress.c_str(), 0, &clientWriteSession);
-    result = nirdma_Connect(clientWriteSession, nirdma_Direction_Send, tokens[0].c_str(), std::stoi(tokens[1])+1, timeoutMs);
-    if (result != nirdma_Error_Success)
+    easyrdma_Session clientWriteSession = easyrdma_InvalidSession;
+    result = easyrdma_CreateConnectorSession(localAddress.c_str(), 0, &clientWriteSession);
+    result = easyrdma_Connect(clientWriteSession, easyrdma_Direction_Send, tokens[0].c_str(), std::stoi(tokens[1])+1, timeoutMs);
+    if (result != easyrdma_Error_Success)
     {
         std::cout << "Failed to connect: " << result << std::endl;
     }
-    assert(result == nirdma_Error_Success);
+    assert(result == easyrdma_Error_Success);
 
     auto sidebandData = RdmaSidebandDataImp::ClientInitFromConnection(clientWriteSession, clientReadSession, usageId, lowLatency, bufferSize);
     return sidebandData;
@@ -215,8 +215,8 @@ const std::string& RdmaSidebandData::UsageId()
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
 Semaphore RdmaSidebandDataImp::_rdmaConnectQueue;
-nirdma_Session RdmaSidebandDataImp::_pendingWriteSession;
-nirdma_Session RdmaSidebandDataImp::_pendingReadSession;
+easyrdma_Session RdmaSidebandDataImp::_pendingWriteSession;
+easyrdma_Session RdmaSidebandDataImp::_pendingReadSession;
 bool RdmaSidebandDataImp::_nextConnectLowLatency;
 bool RdmaSidebandDataImp::_waitForReaderConnection;
 bool RdmaSidebandDataImp::_waitForWriteConnection;
@@ -225,21 +225,21 @@ std::string RdmaSidebandDataImp::_nextConnectionId;
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
-RdmaSidebandDataImp::RdmaSidebandDataImp(nirdma_Session connectedWriteSession, nirdma_Session connectedReadSession, bool lowLatency, int64_t bufferSize) :
+RdmaSidebandDataImp::RdmaSidebandDataImp(easyrdma_Session connectedWriteSession, easyrdma_Session connectedReadSession, bool lowLatency, int64_t bufferSize) :
     _connectedWriteSession(connectedWriteSession),
     _connectedReadSession(connectedReadSession),
     _lowLatency(lowLatency),
     _bufferSize(bufferSize)
 {
-    auto result = nirdma_ConfigureBuffers(_connectedWriteSession, _bufferSize, 2);
+    auto result = easyrdma_ConfigureBuffers(_connectedWriteSession, _bufferSize, 2);
     if (result != 0)
     {
-        std::cout << "Failed nirdma_ConfigureExternalBuffer: " << result << std::endl;
+        std::cout << "Failed easyrdma_ConfigureExternalBuffer: " << result << std::endl;
     }
-    result = nirdma_ConfigureBuffers(_connectedReadSession, _bufferSize, 2);
+    result = easyrdma_ConfigureBuffers(_connectedReadSession, _bufferSize, 2);
     if (result != 0)
     {
-        std::cout << "Failed nirdma_ConfigureBuffers: " << result << std::endl;
+        std::cout << "Failed easyrdma_ConfigureBuffers: " << result << std::endl;
     }
 }
 
@@ -247,20 +247,20 @@ RdmaSidebandDataImp::RdmaSidebandDataImp(nirdma_Session connectedWriteSession, n
 //---------------------------------------------------------------------
 RdmaSidebandDataImp::~RdmaSidebandDataImp()
 {    
-    if (_connectedWriteSession != nirdma_InvalidSession)
+    if (_connectedWriteSession != easyrdma_InvalidSession)
     {
-        auto result = nirdma_CloseSession(_connectedWriteSession);
+        auto result = easyrdma_CloseSession(_connectedWriteSession);
         if (result != 0)
         {
-            std::cout << "Failed nirdma_CloseSession connected write session: " << result << std::endl;
+            std::cout << "Failed easyrdma_CloseSession connected write session: " << result << std::endl;
         }
     }
-    if (_connectedReadSession != nirdma_InvalidSession)
+    if (_connectedReadSession != easyrdma_InvalidSession)
     {
-        auto result = nirdma_CloseSession(_connectedReadSession);
+        auto result = easyrdma_CloseSession(_connectedReadSession);
         if (result != 0)
         {
-            std::cout << "Failed nirdma_CloseSession connected read session: " << result << std::endl;
+            std::cout << "Failed easyrdma_CloseSession connected read session: " << result << std::endl;
         }
     }
 }
@@ -270,8 +270,8 @@ RdmaSidebandDataImp::~RdmaSidebandDataImp()
 void RdmaSidebandDataImp::QueueSidebandConnection(::SidebandStrategy strategy, const std::string& id, bool waitForReader, bool waitForWriter, int64_t bufferSize)
 {
     _rdmaConnectQueue.wait();
-    _pendingWriteSession = nirdma_InvalidSession;
-    _pendingReadSession = nirdma_InvalidSession;
+    _pendingWriteSession = easyrdma_InvalidSession;
+    _pendingReadSession = easyrdma_InvalidSession;
 #ifdef _WIN32
     _nextConnectLowLatency = false;
 #else
@@ -285,7 +285,7 @@ void RdmaSidebandDataImp::QueueSidebandConnection(::SidebandStrategy strategy, c
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
-RdmaSidebandData* RdmaSidebandDataImp::ClientInitFromConnection(nirdma_Session connectedWriteSession, nirdma_Session connectedReadSession, const std::string& id, bool lowLatency, int64_t bufferSize)
+RdmaSidebandData* RdmaSidebandDataImp::ClientInitFromConnection(easyrdma_Session connectedWriteSession, easyrdma_Session connectedReadSession, const std::string& id, bool lowLatency, int64_t bufferSize)
 {
     auto imp = new RdmaSidebandDataImp(connectedWriteSession, connectedReadSession, lowLatency, bufferSize);
     auto sidebandData = new RdmaSidebandData(id, imp);
@@ -295,7 +295,7 @@ RdmaSidebandData* RdmaSidebandDataImp::ClientInitFromConnection(nirdma_Session c
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
-RdmaSidebandData* RdmaSidebandDataImp::InitFromConnection(nirdma_Session connectedSession, bool isWriteSession)
+RdmaSidebandData* RdmaSidebandDataImp::InitFromConnection(easyrdma_Session connectedSession, bool isWriteSession)
 {
     if (isWriteSession)
     {
@@ -305,19 +305,19 @@ RdmaSidebandData* RdmaSidebandDataImp::InitFromConnection(nirdma_Session connect
     {
         _pendingReadSession = connectedSession;
     }
-    if ((_pendingWriteSession != nirdma_InvalidSession || !_waitForWriteConnection) &&
-        (_pendingReadSession != nirdma_InvalidSession || !_waitForReaderConnection))
+    if ((_pendingWriteSession != easyrdma_InvalidSession || !_waitForWriteConnection) &&
+        (_pendingReadSession != easyrdma_InvalidSession || !_waitForReaderConnection))
     {
-        if (_nextConnectLowLatency && _pendingReadSession != nirdma_InvalidSession)
+        if (_nextConnectLowLatency && _pendingReadSession != easyrdma_InvalidSession)
         {
             std::cout << "Setting low latency" << std::endl;
             bool usePooling = true;
-            auto result = nirdma_SetProperty(_pendingReadSession, nirdma_Property_UseRxPolling, &usePooling, sizeof(bool));
-            if (result != nirdma_Error_Success)
+            auto result = easyrdma_SetProperty(_pendingReadSession, easyrdma_Property_UseRxPolling, &usePooling, sizeof(bool));
+            if (result != easyrdma_Error_Success)
             {
                 std::cout << "Failed to connect: " << result << std::endl;
             }
-            assert(result == nirdma_Error_Success);
+            assert(result == easyrdma_Error_Success);
         }
         auto imp = new RdmaSidebandDataImp(_pendingWriteSession, _pendingReadSession, _nextConnectLowLatency, _nextConnectBufferSize);
         auto sidebandData = new RdmaSidebandData(_nextConnectionId, imp);
@@ -332,18 +332,18 @@ RdmaSidebandData* RdmaSidebandDataImp::InitFromConnection(nirdma_Session connect
 //---------------------------------------------------------------------
 bool RdmaSidebandDataImp::Write(const uint8_t* bytes, int64_t byteCount)
 {
-    auto result = nirdma_AcquireSendRegion(_connectedWriteSession, timeoutMs, &_writeBuffer);
-    if (result != nirdma_Error_Success)
+    auto result = easyrdma_AcquireSendRegion(_connectedWriteSession, timeoutMs, &_writeBuffer);
+    if (result != easyrdma_Error_Success)
     {
-        std::cout << "Failed nirdma_AcquireSendRegion during write: " << result << std::endl;
+        std::cout << "Failed easyrdma_AcquireSendRegion during write: " << result << std::endl;
         return false;
     }
     memcpy(_writeBuffer.buffer, bytes, byteCount);
     _writeBuffer.usedSize = byteCount;
-    result = nirdma_QueueBufferRegion(_connectedWriteSession, &_writeBuffer, nullptr);
-    if (result != nirdma_Error_Success)
+    result = easyrdma_QueueBufferRegion(_connectedWriteSession, &_writeBuffer, nullptr);
+    if (result != easyrdma_Error_Success)
     {
-        std::cout << "Failed nirdma_QueueExternalBufferRegion: " << result << std::endl;
+        std::cout << "Failed easyrdma_QueueExternalBufferRegion: " << result << std::endl;
         return false;
     }
     return true;
@@ -354,13 +354,13 @@ bool RdmaSidebandDataImp::Write(const uint8_t* bytes, int64_t byteCount)
 bool RdmaSidebandDataImp::Read(uint8_t* bytes, int64_t bufferSize, int64_t* numBytesRead)
 {
     _readBuffer = {};
-    int32_t result = nirdma_Error_Success;
+    int32_t result = easyrdma_Error_Success;
     do {    
-        result = nirdma_AcquireReceivedRegion(_connectedReadSession, timeoutMs, &_readBuffer);
-    } while (result == nirdma_Error_Timeout);
-    if (result != nirdma_Error_Success)
+        result = easyrdma_AcquireReceivedRegion(_connectedReadSession, timeoutMs, &_readBuffer);
+    } while (result == easyrdma_Error_Timeout);
+    if (result != easyrdma_Error_Success)
     {
-        std::cout << "Failed nirdma_QueueExternalBufferRegion: " << result << std::endl;
+        std::cout << "Failed easyrdma_QueueExternalBufferRegion: " << result << std::endl;
         return false;
     }
     if (bytes != nullptr)
@@ -370,7 +370,7 @@ bool RdmaSidebandDataImp::Read(uint8_t* bytes, int64_t bufferSize, int64_t* numB
             memcpy(bytes, _readBuffer.buffer, _readBuffer.usedSize);
         }
         *numBytesRead = _readBuffer.usedSize;
-        result = nirdma_ReleaseReceivedBufferRegion(_connectedReadSession, &_readBuffer);
+        result = easyrdma_ReleaseReceivedBufferRegion(_connectedReadSession, &_readBuffer);
     }
     return true;
 }
@@ -379,14 +379,14 @@ bool RdmaSidebandDataImp::Read(uint8_t* bytes, int64_t bufferSize, int64_t* numB
 //---------------------------------------------------------------------
 bool RdmaSidebandDataImp::WriteLengthPrefixed(const uint8_t* bytes, int64_t byteCount)
 {
-    nirdma_AcquireSendRegion(_connectedWriteSession, timeoutMs, &_writeBuffer);
+    easyrdma_AcquireSendRegion(_connectedWriteSession, timeoutMs, &_writeBuffer);
     *reinterpret_cast<int64_t*>(_writeBuffer.buffer) = byteCount;
     memcpy(reinterpret_cast<uint8_t*>(_writeBuffer.buffer) + sizeof(int64_t), bytes, byteCount);    
     _writeBuffer.usedSize = byteCount + sizeof(int64_t);
-    auto result = nirdma_QueueBufferRegion(_connectedWriteSession, &_writeBuffer, nullptr);
-    if (result != nirdma_Error_Success)
+    auto result = easyrdma_QueueBufferRegion(_connectedWriteSession, &_writeBuffer, nullptr);
+    if (result != easyrdma_Error_Success)
     {
-        std::cout << "Failed nirdma_QueueExternalBufferRegion: " << result << std::endl;
+        std::cout << "Failed easyrdma_QueueExternalBufferRegion: " << result << std::endl;
         return false;
     }
     return true;
@@ -439,7 +439,7 @@ const uint8_t* RdmaSidebandDataImp::BeginDirectReadLengthPrefixed(int64_t* buffe
 //---------------------------------------------------------------------
 bool RdmaSidebandDataImp::FinishDirectRead()
 {
-    auto result = nirdma_ReleaseReceivedBufferRegion(_connectedReadSession, &_readBuffer);
+    auto result = easyrdma_ReleaseReceivedBufferRegion(_connectedReadSession, &_readBuffer);
     return true;
 }
 
@@ -447,7 +447,7 @@ bool RdmaSidebandDataImp::FinishDirectRead()
 //---------------------------------------------------------------------
 uint8_t* RdmaSidebandDataImp::BeginDirectWrite()
 {
-    nirdma_AcquireSendRegion(_connectedWriteSession, timeoutMs, &_writeBuffer);
+    easyrdma_AcquireSendRegion(_connectedWriteSession, timeoutMs, &_writeBuffer);
     return reinterpret_cast<uint8_t*>(_writeBuffer.buffer) + sizeof(int64_t);
 }
 
@@ -457,10 +457,10 @@ bool RdmaSidebandDataImp::FinishDirectWrite(int64_t byteCount)
 {
     *reinterpret_cast<int64_t*>(_writeBuffer.buffer) = byteCount;
     _writeBuffer.usedSize = byteCount + sizeof(int64_t);
-    auto result = nirdma_QueueBufferRegion(_connectedWriteSession, &_writeBuffer, nullptr);
-    if (result != nirdma_Error_Success)
+    auto result = easyrdma_QueueBufferRegion(_connectedWriteSession, &_writeBuffer, nullptr);
+    if (result != easyrdma_Error_Success)
     {
-        std::cout << "Failed nirdma_QueueExternalBufferRegion: " << result << std::endl;
+        std::cout << "Failed easyrdma_QueueExternalBufferRegion: " << result << std::endl;
         return false;
     }
     return true;
@@ -479,12 +479,12 @@ std::string GetRdmaAddress()
 {    
     size_t numAddresses = 0;
 
-    auto result = nirdma_Enumerate(nullptr, &numAddresses, nirdma_AddressFamily_AF_INET);
+    auto result = easyrdma_Enumerate(nullptr, &numAddresses, easyrdma_AddressFamily_AF_INET);
     std::vector<std::string> interfaces;
     if (numAddresses != 0)
     {
-        std::vector<nirdma_AddressString> addresses(numAddresses);
-        auto result2 = nirdma_Enumerate(&addresses[0], &numAddresses, nirdma_AddressFamily_AF_INET);
+        std::vector<easyrdma_AddressString> addresses(numAddresses);
+        auto result2 = easyrdma_Enumerate(&addresses[0], &numAddresses, easyrdma_AddressFamily_AF_INET);
         for (auto addr : addresses)
         {
             interfaces.push_back(&addr.addressString[0]);
@@ -510,25 +510,25 @@ int AcceptSidebandRdmaRequests(int direction, int port)
         return -1;
     }
 
-    nirdma_Session listenSession = nirdma_InvalidSession;
-    auto result = nirdma_CreateListenerSession(listenAddress.c_str(), port, &listenSession);
+    easyrdma_Session listenSession = easyrdma_InvalidSession;
+    auto result = easyrdma_CreateListenerSession(listenAddress.c_str(), port, &listenSession);
     if (result != 0)
     {
-        std::cout << "Failed nirdma_CreateListenerSession: " << result << std::endl;
+        std::cout << "Failed easyrdma_CreateListenerSession: " << result << std::endl;
     }
     while (true)
     {
-        nirdma_Session connectedSession = nirdma_InvalidSession;
-        auto r = nirdma_Accept(listenSession, direction, timeoutMs, &connectedSession);
+        easyrdma_Session connectedSession = easyrdma_InvalidSession;
+        auto r = easyrdma_Accept(listenSession, direction, timeoutMs, &connectedSession);
         if (r != 0)
         {
-            std::cout << "Failed nirdma_CreateListenerSession: " << r << std::endl;
+            std::cout << "Failed easyrdma_CreateListenerSession: " << r << std::endl;
         }
         assert(r == 0);
         std::cout << "RDMA Connection!" << std::endl;        
-        RdmaSidebandDataImp::InitFromConnection(connectedSession, direction == nirdma_Direction_Send);
+        RdmaSidebandDataImp::InitFromConnection(connectedSession, direction == easyrdma_Direction_Send);
     }
-    nirdma_CloseSession(listenSession);
+    easyrdma_CloseSession(listenSession);
     return 0;
 }
 
@@ -537,7 +537,7 @@ int AcceptSidebandRdmaRequests(int direction, int port)
 int AcceptSidebandRdmaSendRequests()
 {    
     int port = 50060;
-    return AcceptSidebandRdmaRequests(nirdma_Direction_Send, port);
+    return AcceptSidebandRdmaRequests(easyrdma_Direction_Send, port);
 }
 
 //---------------------------------------------------------------------
@@ -545,5 +545,5 @@ int AcceptSidebandRdmaSendRequests()
 int AcceptSidebandRdmaReceiveRequests()
 {    
     int port = 50061;
-    return AcceptSidebandRdmaRequests(nirdma_Direction_Receive, port);
+    return AcceptSidebandRdmaRequests(easyrdma_Direction_Receive, port);
 }

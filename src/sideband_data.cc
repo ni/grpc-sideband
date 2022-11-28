@@ -60,7 +60,7 @@ std::string NextConnectionId()
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
-void QueueSidebandConnection(::SidebandStrategy strategy, const std::string& id, bool waitForReader, bool waitForWriter, int64_t bufferSize)
+int32_t _SIDEBAND_FUNC QueueSidebandConnection(::SidebandStrategy strategy, const char* id, bool waitForReader, bool waitForWriter, int64_t bufferSize)
 {
     switch (strategy)
     {
@@ -73,13 +73,14 @@ void QueueSidebandConnection(::SidebandStrategy strategy, const std::string& id,
         SocketSidebandData::QueueSidebandConnection(strategy, id, bufferSize);
     default:
         // don't need to queue for non RDMA strategies
-        return;
+        return 0;
     }
+    return 0;
 }
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
-std::string InitOwnerSidebandData(::SidebandStrategy strategy, int64_t bufferSize)
+int32_t _SIDEBAND_FUNC InitOwnerSidebandData(::SidebandStrategy strategy, int64_t bufferSize, char* out_sideband_id)
 {
     std::unique_lock<std::mutex> lock(_bufferLockMutex);
     switch (strategy)
@@ -88,40 +89,45 @@ std::string InitOwnerSidebandData(::SidebandStrategy strategy, int64_t bufferSiz
             {
                 auto sidebandData = DoubleBufferedSharedMemorySidebandData::InitNew(bufferSize);
                 _buffers.emplace(sidebandData->UsageId(), sidebandData);
-                return sidebandData->UsageId();
+                strcpy(out_sideband_id, sidebandData->UsageId().c_str());
+                return 0;
             }
             break;
         case ::SidebandStrategy::SHARED_MEMORY:
             {
                 auto sidebandData = SharedMemorySidebandData::InitNew(bufferSize);
                 _buffers.emplace(sidebandData->UsageId(), sidebandData);
-                return sidebandData->UsageId();
+                strcpy(out_sideband_id, sidebandData->UsageId().c_str());
+                return 0;
             }
             break;
         case ::SidebandStrategy::SOCKETS:
         case ::SidebandStrategy::SOCKETS_LOW_LATENCY:
-            return NextConnectionId();
+            strcpy(out_sideband_id, NextConnectionId().c_str());
+            return 0;
         case ::SidebandStrategy::RDMA:
         case ::SidebandStrategy::RDMA_LOW_LATENCY:
-            return NextConnectionId();
+            strcpy(out_sideband_id, NextConnectionId().c_str());
+            return 0;
     }
     assert(false);
-    return std::string();
+    return -1;
 }
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
-int64_t GetOwnerSidebandDataToken(const std::string& usageId)
+int32_t _SIDEBAND_FUNC GetOwnerSidebandDataToken(const char* usageId, int32_t* out_tokenId)
 {
     std::unique_lock<std::mutex> lock(_bufferLockMutex);
     
     while (_buffers.find(usageId) == _buffers.end()) _bufferLock.wait(lock);
-    return reinterpret_cast<int64_t>(_buffers[usageId]);
+    *out_tokenId = reinterpret_cast<int64_t>(_buffers[usageId]);
+    return 0;
 }
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
-int64_t InitClientSidebandData(const std::string& sidebandServiceUrl, ::SidebandStrategy strategy, const std::string& usageId, int bufferSize)
+int32_t _SIDEBAND_FUNC InitClientSidebandData(const char* sidebandServiceUrl, ::SidebandStrategy strategy, const char* usageId, int bufferSize, int64_t* out_tokenId)
 {
     SidebandData* sidebandData = nullptr;
     bool insert = true;
@@ -153,7 +159,8 @@ int64_t InitClientSidebandData(const std::string& sidebandServiceUrl, ::Sideband
         assert(_buffers.find(usageId) == _buffers.end());
         _buffers.emplace(usageId, sidebandData);
     }
-    return reinterpret_cast<int64_t>(sidebandData);
+    *out_tokenId = reinterpret_cast<int64_t>(sidebandData);
+    return 0;
 }
 
 //---------------------------------------------------------------------
@@ -170,23 +177,25 @@ void RegisterSidebandData(SidebandData* sidebandData)
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
-void WriteSidebandData(int64_t dataToken, uint8_t* bytes, int64_t bytecount)
+int32_t _SIDEBAND_FUNC WriteSidebandData(int64_t dataToken, uint8_t* bytes, int64_t bytecount)
 {
     auto sidebandData = reinterpret_cast<SidebandData*>(dataToken);
     sidebandData->Write(bytes, bytecount);
+    return 0;
 }
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
-void ReadSidebandData(int64_t dataToken, uint8_t* bytes, int64_t bufferSize, int64_t* numBytesRead)
+int32_t _SIDEBAND_FUNC ReadSidebandData(int64_t dataToken, uint8_t* bytes, int64_t bufferSize, int64_t* numBytesRead)
 {    
     auto sidebandData = reinterpret_cast<SidebandData*>(dataToken);
     sidebandData->Read(bytes, bufferSize, numBytesRead);
+    return 0;
 }
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
-void CloseSidebandData(int64_t dataToken)
+int32_t _SIDEBAND_FUNC CloseSidebandData(int64_t dataToken)
 {    
     std::unique_lock<std::mutex> lock(_bufferLockMutex);
 
@@ -194,6 +203,7 @@ void CloseSidebandData(int64_t dataToken)
     assert(_buffers.find(sidebandData->UsageId()) != _buffers.end());
     _buffers.erase(sidebandData->UsageId());
     delete sidebandData;
+    return 0;
 }
 
 //---------------------------------------------------------------------

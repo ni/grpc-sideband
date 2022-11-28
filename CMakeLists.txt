@@ -17,6 +17,8 @@ else()
   SET(LVRT_LIB "")
 endif()
 
+add_definitions(-D_BUILDING_GRPC_SIDEBAND)
+
 find_package(Threads REQUIRED)
 link_directories(.)
 
@@ -28,7 +30,7 @@ include_directories("${CMAKE_CURRENT_BINARY_DIR}" "./src")
 #----------------------------------------------------------------------
 # perftest gRPC Server
 #----------------------------------------------------------------------
-add_library(ni_grpc_sideband
+add_library(ni_grpc_sideband SHARED
   src/sideband_data.cc
   src/sideband_sockets.cc
   src/sideband_shared_memory.cc
@@ -36,4 +38,5 @@ add_library(ni_grpc_sideband
   )
 target_link_libraries(ni_grpc_sideband
   ${_REFLECTION}
+  import/easyrdma
   )
