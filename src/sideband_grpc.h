@@ -4,41 +4,47 @@
 
 #include <data_moniker.pb.h>
 #include <sideband_data.h>
-#include <sideband_internal.h>
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
 inline int64_t InitMonikerSidebandData(const ni::data_monikers::BeginMonikerSidebandStreamResponse& initResponse)
 {
-    return InitClientSidebandData(initResponse.connection_url(), (::SidebandStrategy)initResponse.strategy(), initResponse.sideband_identifier(), initResponse.buffer_size());
+    int64_t token;
+    InitClientSidebandData(initResponse.connection_url().c_str(), (::SidebandStrategy)initResponse.strategy(), initResponse.sideband_identifier().c_str(), initResponse.buffer_size(), &token);
+    return token;
 }
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
 inline int64_t InitClientSidebandData(const ni::data_monikers::BeginMonikerSidebandStreamResponse& response)
 {
-    return InitClientSidebandData(response.connection_url(), (::SidebandStrategy)response.strategy(), response.sideband_identifier(), response.buffer_size());    
+    int64_t token;
+    InitClientSidebandData(response.connection_url().c_str(), (::SidebandStrategy)response.strategy(), response.sideband_identifier().c_str(), response.buffer_size(), &token);
+    return token;    
 }
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
 inline bool ReadSidebandMessage(int64_t dataToken, google::protobuf::MessageLite* message)
 {    
-    auto sidebandData = reinterpret_cast<SidebandData*>(dataToken);
     bool success = false;
-    if (sidebandData->SupportsDirectReadWrite())
+    if (SidebandData_SupportsDirectReadWrite(dataToken) == 1)
     {
         int64_t bufferSize = 0;
-        auto buffer = sidebandData->BeginDirectReadLengthPrefixed(&bufferSize);
+        const uint8_t* buffer = nullptr;
+        SidebandData_BeginDirectReadLengthPrefixed(dataToken, &bufferSize, &buffer);
         success = message->ParseFromArray(buffer, bufferSize);
-        sidebandData->FinishDirectRead();
+        SidebandData_FinishDirectRead(dataToken);
     }
     else
     {
-        auto bufferSize = sidebandData->ReadLengthPrefix();
+        int64_t bufferSize = 0;
+        SidebandData_ReadLengthPrefix(dataToken, &bufferSize);
         int64_t bytesRead = 0;
-        sidebandData->ReadFromLengthPrefixed(sidebandData->SerializeBuffer(), bufferSize, &bytesRead);
-        success = message->ParseFromArray(sidebandData->SerializeBuffer(), bufferSize);
+        uint8_t* buffer = nullptr;
+        SidebandData_SerializeBuffer(dataToken, &buffer);
+        SidebandData_ReadFromLengthPrefixed(dataToken, buffer, bufferSize, &bytesRead);
+        success = message->ParseFromArray(buffer, bufferSize);
         assert(success);
     }
     return success;
@@ -48,18 +54,20 @@ inline bool ReadSidebandMessage(int64_t dataToken, google::protobuf::MessageLite
 //---------------------------------------------------------------------
 inline int64_t WriteSidebandMessage(int64_t dataToken, const google::protobuf::MessageLite& message)
 {
-    auto sidebandData = reinterpret_cast<SidebandData*>(dataToken);
     auto byteSize = message.ByteSizeLong();
-    if (sidebandData->SupportsDirectReadWrite())
+    if (SidebandData_SupportsDirectReadWrite(dataToken) == 1)
     {
-        auto buffer = sidebandData->BeginDirectWrite();
+        uint8_t* buffer = nullptr;
+        SidebandData_BeginDirectWrite(dataToken, &buffer);
         message.SerializeToArray(buffer, byteSize);
-        sidebandData->FinishDirectWrite(byteSize);
+        SidebandData_FinishDirectWrite(dataToken, byteSize);
     }
     else
     {
-        message.SerializeToArray(sidebandData->SerializeBuffer(), byteSize);
-        sidebandData->WriteLengthPrefixed(sidebandData->SerializeBuffer(), byteSize);
+        uint8_t* buffer = nullptr;
+        SidebandData_SerializeBuffer(dataToken, &buffer);
+        message.SerializeToArray(buffer, byteSize);
+        SidebandData_WriteLengthPrefixed(dataToken, buffer, byteSize);
     }
     return byteSize;
 }

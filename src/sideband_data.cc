@@ -60,6 +60,114 @@ std::string NextConnectionId()
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
+int32_t _SIDEBAND_FUNC SidebandData_Write(int64_t sidebandToken, const uint8_t* bytes, int64_t byteCount)
+{
+    auto sidebandData = reinterpret_cast<SidebandData*>(sidebandToken);
+    auto result = sidebandData->Write(bytes, byteCount);
+    return result ? 0 : -1;
+}
+
+//---------------------------------------------------------------------
+//---------------------------------------------------------------------
+int32_t _SIDEBAND_FUNC SidebandData_Read(int64_t sidebandToken, uint8_t* bytes, int64_t bufferSize, int64_t* numBytesRead)
+{
+    auto sidebandData = reinterpret_cast<SidebandData*>(sidebandToken);
+    auto result = sidebandData->Read(bytes, bufferSize, numBytesRead);
+    return result ? 0 : -1;
+}
+
+//---------------------------------------------------------------------
+//---------------------------------------------------------------------
+int32_t _SIDEBAND_FUNC SidebandData_WriteLengthPrefixed(int64_t sidebandToken, const uint8_t* bytes, int64_t byteCount)
+{
+    auto sidebandData = reinterpret_cast<SidebandData*>(sidebandToken);
+    auto result = sidebandData->WriteLengthPrefixed(bytes, byteCount);
+    return result ? 0 : -1;
+}
+
+//---------------------------------------------------------------------
+//---------------------------------------------------------------------
+int32_t _SIDEBAND_FUNC SidebandData_ReadFromLengthPrefixed(int64_t sidebandToken, uint8_t* bytes, int64_t bufferSize, int64_t* numBytesRead)
+{
+    auto sidebandData = reinterpret_cast<SidebandData*>(sidebandToken);
+    auto result = sidebandData->ReadFromLengthPrefixed(bytes, bufferSize, numBytesRead);
+    return result ? 0 : -1;
+}
+
+//---------------------------------------------------------------------
+//---------------------------------------------------------------------
+int32_t _SIDEBAND_FUNC SidebandData_ReadLengthPrefix(int64_t sidebandToken, int64_t* length)
+{
+    auto sidebandData = reinterpret_cast<SidebandData*>(sidebandToken);
+    *length = sidebandData->ReadLengthPrefix();
+    return 0;
+}
+
+//---------------------------------------------------------------------
+//---------------------------------------------------------------------
+int32_t _SIDEBAND_FUNC SidebandData_SupportsDirectReadWrite(int64_t sidebandToken)
+{
+    auto sidebandData = reinterpret_cast<SidebandData*>(sidebandToken);
+    auto result = sidebandData->SupportsDirectReadWrite();
+    return result ? 1 : 0;
+}
+
+//---------------------------------------------------------------------
+//---------------------------------------------------------------------
+int32_t _SIDEBAND_FUNC SidebandData_BeginDirectRead(int64_t sidebandToken, int64_t byteCount, const uint8_t** buffer)
+{
+    auto sidebandData = reinterpret_cast<SidebandData*>(sidebandToken);
+    *buffer = sidebandData->BeginDirectRead(byteCount);
+    return *buffer != nullptr ? 0 : -1;
+}
+
+//---------------------------------------------------------------------
+//---------------------------------------------------------------------
+int32_t _SIDEBAND_FUNC SidebandData_BeginDirectReadLengthPrefixed(int64_t sidebandToken, int64_t* bufferSize, const uint8_t** buffer)
+{
+    auto sidebandData = reinterpret_cast<SidebandData*>(sidebandToken);
+    *buffer = sidebandData->BeginDirectReadLengthPrefixed(bufferSize);
+    return *buffer != nullptr ? 0 : -1;
+}
+
+//---------------------------------------------------------------------
+//---------------------------------------------------------------------
+int32_t _SIDEBAND_FUNC SidebandData_FinishDirectRead(int64_t sidebandToken)
+{
+    auto sidebandData = reinterpret_cast<SidebandData*>(sidebandToken);
+    auto result = sidebandData->FinishDirectRead();
+    return result ? 0 : -1;
+}
+
+//---------------------------------------------------------------------
+//---------------------------------------------------------------------
+int32_t _SIDEBAND_FUNC SidebandData_BeginDirectWrite(int64_t sidebandToken, uint8_t** buffer)
+{
+    auto sidebandData = reinterpret_cast<SidebandData*>(sidebandToken);
+    *buffer = sidebandData->BeginDirectWrite();
+    return *buffer != nullptr ? 0 : -1;
+}
+
+//---------------------------------------------------------------------
+//---------------------------------------------------------------------
+int32_t _SIDEBAND_FUNC SidebandData_FinishDirectWrite(int64_t sidebandToken, int64_t byteCount)
+{
+    auto sidebandData = reinterpret_cast<SidebandData*>(sidebandToken);
+    auto result = sidebandData->FinishDirectWrite(byteCount);
+    return result ? 0 : -1;
+}
+
+//---------------------------------------------------------------------
+//---------------------------------------------------------------------
+int32_t _SIDEBAND_FUNC SidebandData_SerializeBuffer(int64_t sidebandToken, uint8_t** buffer)
+{
+    auto sidebandData = reinterpret_cast<SidebandData*>(sidebandToken);
+    *buffer = sidebandData->SerializeBuffer();
+    return 0;
+}
+
+//---------------------------------------------------------------------
+//---------------------------------------------------------------------
 int32_t _SIDEBAND_FUNC QueueSidebandConnection(::SidebandStrategy strategy, const char* id, bool waitForReader, bool waitForWriter, int64_t bufferSize)
 {
     switch (strategy)
@@ -80,7 +188,7 @@ int32_t _SIDEBAND_FUNC QueueSidebandConnection(::SidebandStrategy strategy, cons
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
-int32_t _SIDEBAND_FUNC InitOwnerSidebandData(::SidebandStrategy strategy, int64_t bufferSize, char* out_sideband_id)
+int32_t _SIDEBAND_FUNC InitOwnerSidebandData(::SidebandStrategy strategy, int64_t bufferSize, char out_sideband_id[32])
 {
     std::unique_lock<std::mutex> lock(_bufferLockMutex);
     switch (strategy)
@@ -116,7 +224,7 @@ int32_t _SIDEBAND_FUNC InitOwnerSidebandData(::SidebandStrategy strategy, int64_
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
-int32_t _SIDEBAND_FUNC GetOwnerSidebandDataToken(const char* usageId, int32_t* out_tokenId)
+int32_t _SIDEBAND_FUNC GetOwnerSidebandDataToken(const char* usageId, int64_t* out_tokenId)
 {
     std::unique_lock<std::mutex> lock(_bufferLockMutex);
     
@@ -223,3 +331,12 @@ std::string GetConnectionAddress(::SidebandStrategy strategy)
     std::cout << "Connection address: " << address << std::endl;
     return address;
 }
+
+//---------------------------------------------------------------------
+//---------------------------------------------------------------------
+int32_t _SIDEBAND_FUNC GetSidebandConnectionAddress(::SidebandStrategy strategy, char address[1024])
+{
+    sprintf(address, GetConnectionAddress(strategy).c_str());
+    return 0;
+}
+
