@@ -340,3 +340,22 @@ int32_t _SIDEBAND_FUNC GetSidebandConnectionAddress(::SidebandStrategy strategy,
     return 0;
 }
 
+//---------------------------------------------------------------------
+//---------------------------------------------------------------------
+extern "C" __declspec(dllexport) BOOL WINAPI DllMain(
+    HINSTANCE hinstDLL,  // handle to DLL module
+    DWORD fdwReason,     // reason for calling function
+    LPVOID lpReserved)  // reserved
+{
+    switch (fdwReason) {
+    case DLL_PROCESS_ATTACH:
+        break;
+    case DLL_THREAD_ATTACH:
+        break;
+    case DLL_THREAD_DETACH:
+        break;
+    case DLL_PROCESS_DETACH:
+        break;
+    }
+    return TRUE;
+}
