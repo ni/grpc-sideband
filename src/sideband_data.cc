@@ -341,6 +341,7 @@ int32_t _SIDEBAND_FUNC GetSidebandConnectionAddress(::SidebandStrategy strategy,
     return 0;
 }
 
+#ifdef _WIN32
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
 extern "C" __declspec(dllexport) BOOL WINAPI DllMain(
@@ -360,3 +361,4 @@ extern "C" __declspec(dllexport) BOOL WINAPI DllMain(
     }
     return TRUE;
 }
+#endif
