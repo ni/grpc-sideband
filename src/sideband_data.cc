@@ -4,6 +4,7 @@
 #include <cassert>
 #include <iostream>
 #include <atomic>
+#include <cstring>
 #include "sideband_data.h"
 #include "sideband_internal.h"
 
@@ -17,7 +18,7 @@ std::map<std::string, SidebandData*> _buffers;
 //---------------------------------------------------------------------
 SidebandData::SidebandData(int64_t bufferSize) :
     _bufferSize(bufferSize)
-{        
+{
 }
 
 //---------------------------------------------------------------------
@@ -227,7 +228,7 @@ int32_t _SIDEBAND_FUNC InitOwnerSidebandData(::SidebandStrategy strategy, int64_
 int32_t _SIDEBAND_FUNC GetOwnerSidebandDataToken(const char* usageId, int64_t* out_tokenId)
 {
     std::unique_lock<std::mutex> lock(_bufferLockMutex);
-    
+
     while (_buffers.find(usageId) == _buffers.end()) _bufferLock.wait(lock);
     *out_tokenId = reinterpret_cast<int64_t>(_buffers[usageId]);
     return 0;
@@ -274,7 +275,7 @@ int32_t _SIDEBAND_FUNC InitClientSidebandData(const char* sidebandServiceUrl, ::
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
 void RegisterSidebandData(SidebandData* sidebandData)
-{    
+{
     std::unique_lock<std::mutex> lock(_bufferLockMutex);
 
     assert(_buffers.find(sidebandData->UsageId()) == _buffers.end());
@@ -295,7 +296,7 @@ int32_t _SIDEBAND_FUNC WriteSidebandData(int64_t dataToken, uint8_t* bytes, int6
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
 int32_t _SIDEBAND_FUNC ReadSidebandData(int64_t dataToken, uint8_t* bytes, int64_t bufferSize, int64_t* numBytesRead)
-{    
+{
     auto sidebandData = reinterpret_cast<SidebandData*>(dataToken);
     sidebandData->Read(bytes, bufferSize, numBytesRead);
     return 0;
@@ -304,7 +305,7 @@ int32_t _SIDEBAND_FUNC ReadSidebandData(int64_t dataToken, uint8_t* bytes, int64
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
 int32_t _SIDEBAND_FUNC CloseSidebandData(int64_t dataToken)
-{    
+{
     std::unique_lock<std::mutex> lock(_bufferLockMutex);
 
     auto sidebandData = reinterpret_cast<SidebandData*>(dataToken);
@@ -319,7 +320,7 @@ int32_t _SIDEBAND_FUNC CloseSidebandData(int64_t dataToken)
 std::string GetConnectionAddress(::SidebandStrategy strategy)
 {
     std::string address;
-    if (strategy == ::SidebandStrategy::RDMA || 
+    if (strategy == ::SidebandStrategy::RDMA ||
         strategy == ::SidebandStrategy::RDMA_LOW_LATENCY)
     {
         address = GetRdmaAddress() + ":50060";
