@@ -73,6 +73,9 @@ private:
     void Init();
 #ifdef _WIN32
     HANDLE _mapFile;
+#else
+    int _mapFD;
+    std::string _fileName;
 #endif
     uint8_t* _buffer;
     std::string _id;
