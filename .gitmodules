@@ -1,0 +1,3 @@
+[submodule "third_party/easyrdma"]
+	path = third_party/easyrdma
+	url = https://github.com/ni/easyrdma.git
