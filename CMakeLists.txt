@@ -4,23 +4,29 @@ cmake_minimum_required(VERSION 3.5.1)
 
 project(ni-grpc-sideband C CXX)
 
+option(INCLUDE_SIDEBAND_RDMA "Include support for RDMA sideband transfers" OFF)
+
 if(NOT MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-  set(RDMA_LIB "libnirdma.so")
-  SET(LVRT_LIB "liblvrt.so")
+  set(RDMA_LIB "libeasyrdma.so")
 else()
   cmake_policy(SET CMP0091 NEW)
   add_definitions(-D_WIN32_WINNT=0x600 -bigobj)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4267 /wd4244 /wd4018")
   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-  set(RDMA_LIB "rdma.lib")
-  SET(LVRT_LIB "")
+  set(RDMA_LIB "easyrdma.lib")
 endif()
 
 add_definitions(-D_BUILDING_GRPC_SIDEBAND)
 
+if (INCLUDE_SIDEBAND_RDMA)
+  add_definitions(-DENABLE_RDMA_SIDEBAND)
+else()
+  set(RDMA_LIB "")
+endif()
+
 find_package(Threads REQUIRED)
-link_directories(.)
+link_directories("." "import")
 
 #----------------------------------------------------------------------
 # Include generated *.pb.h files
@@ -38,5 +44,5 @@ add_library(ni_grpc_sideband SHARED
   )
 target_link_libraries(ni_grpc_sideband
   ${_REFLECTION}
-  import/easyrdma
+  ${RDMA_LIB}
   )
