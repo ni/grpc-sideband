@@ -1,5 +1,7 @@
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
+#if ENABLE_RDMA_SIDEBAND
+
 #include <iostream>
 #include <cstring>
 //#include <vector>
@@ -547,3 +549,5 @@ int AcceptSidebandRdmaReceiveRequests()
     int port = 50061;
     return AcceptSidebandRdmaRequests(easyrdma_Direction_Receive, port);
 }
+
+#endif

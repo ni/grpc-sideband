@@ -156,6 +156,8 @@ private:
     static std::string _nextConnectionId;
 };
 
+#if ENABLE_RDMA_SIDEBAND
+
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
 class RdmaSidebandDataImp;
@@ -189,10 +191,12 @@ private:
     std::unique_ptr<RdmaSidebandDataImp> _imp;
     std::string _id;
 };
+#endif
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
 void RegisterSidebandData(SidebandData* sidebandData);
+
 std::vector<std::string> SplitUrlString(const std::string& s);
 int ConnectIdLength();
 std::string NextConnectionId();
@@ -200,5 +204,9 @@ std::string NextConnectionId();
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
 std::string GetConnectionAddress(::SidebandStrategy strategy);
+
+#if ENABLE_RDMA_SIDEBAND
 std::string GetRdmaAddress();
+#endif
+
 std::string GetSocketsAddress();

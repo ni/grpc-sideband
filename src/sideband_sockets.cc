@@ -340,11 +340,13 @@ std::string GetSocketsAddress()
     {
         return s_SidebandSocketsAddress;
     }
+#if ENABLE_RDMA_SIDEBAND
     auto rdmaAddress = GetRdmaAddress();
     if (rdmaAddress.length() > 0)
     {
         return rdmaAddress;
     }
+#endif
     return "localhost";
 }
 
@@ -385,6 +387,7 @@ int32_t _SIDEBAND_FUNC RunSidebandSocketsAccept(const char* address, int port)
 
     listen(sockfd, 5);
 
+    std::cout << "Listening for sideband sockets at: " << address << ":" << port << std::endl;
     while (true)
     {
         sockaddr_in cli_addr {};
