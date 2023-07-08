@@ -156,7 +156,7 @@ private:
     static std::string _nextConnectionId;
 };
 
-#if ENABLE_RDMA_SIDEBAND
+#ifdef ENABLE_RDMA_SIDEBAND
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
@@ -205,7 +205,7 @@ std::string NextConnectionId();
 //---------------------------------------------------------------------
 std::string GetConnectionAddress(::SidebandStrategy strategy);
 
-#if ENABLE_RDMA_SIDEBAND
+#ifdef ENABLE_RDMA_SIDEBAND
 std::string GetRdmaAddress();
 #endif
 

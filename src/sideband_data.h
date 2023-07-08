@@ -36,10 +36,8 @@ enum class SidebandStrategy
   SOCKETS = 4,
   SOCKETS_LOW_LATENCY = 5,
   HYPERVISOR_SOCKETS = 6,
-#if ENABLE_RDMA_SIDEBAND
   RDMA = 7,
   RDMA_LOW_LATENCY = 8
-#endif
 };
 
 //---------------------------------------------------------------------
@@ -54,10 +52,8 @@ int32_t _SIDEBAND_FUNC CloseSidebandData(int64_t dataToken);
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
 int32_t _SIDEBAND_FUNC RunSidebandSocketsAccept(const char* address, int port);
-#if ENABLE_RDMA_SIDEBAND
 int32_t _SIDEBAND_FUNC AcceptSidebandRdmaSendRequests();
 int32_t _SIDEBAND_FUNC AcceptSidebandRdmaReceiveRequests();
-#endif
 int32_t _SIDEBAND_FUNC GetSidebandConnectionAddress(::SidebandStrategy strategy, char address[1024]);
 
 //---------------------------------------------------------------------

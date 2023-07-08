@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
-#if ENABLE_RDMA_SIDEBAND
+#ifdef ENABLE_RDMA_SIDEBAND
 
 #include <iostream>
 #include <cstring>
@@ -533,21 +533,28 @@ int AcceptSidebandRdmaRequests(int direction, int port)
     easyrdma_CloseSession(listenSession);
     return 0;
 }
+#endif
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
 int AcceptSidebandRdmaSendRequests()
 {    
+#ifdef ENABLE_RDMA_SIDEBAND
     int port = 50060;
     return AcceptSidebandRdmaRequests(easyrdma_Direction_Send, port);
+#else
+    return -1;
+#endif
 }
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
 int AcceptSidebandRdmaReceiveRequests()
 {    
+#ifdef ENABLE_RDMA_SIDEBAND
     int port = 50061;
     return AcceptSidebandRdmaRequests(easyrdma_Direction_Receive, port);
-}
-
+#else
+    return -1;
 #endif
+}

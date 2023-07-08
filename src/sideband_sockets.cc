@@ -340,7 +340,7 @@ std::string GetSocketsAddress()
     {
         return s_SidebandSocketsAddress;
     }
-#if ENABLE_RDMA_SIDEBAND
+#ifdef ENABLE_RDMA_SIDEBAND
     auto rdmaAddress = GetRdmaAddress();
     if (rdmaAddress.length() > 0)
     {

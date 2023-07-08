@@ -18,6 +18,14 @@ Download the repo and update submodules, this will pull the gRPC components and 
 > cd grpc-sideband
 ```
 
+if you are building with RDMA support (default) then you need to install boost and rdma core
+On Ubuntu you can install the following packages
+
+```
+sudo apt install libboost-all-dev
+sudo apt install rdma-core librdmacm-dev
+```
+
 Build Debug - Do not build debug for profiling
 ```
 > mkdir build
@@ -43,7 +51,7 @@ Download the repo, this will pull the gRPC components and all dependencies
 > cd grpc-sideband
 ```
 
-Build - Do not build debug for profiling
+Build Debug - Do not build debug for profiling
 
 ```
 > mkdir -p cmake/build
@@ -62,7 +70,14 @@ Build Release
 > make
 ```
 
-## Building on Linux RT
+### RDMA Support
+RDMA support can be optionally included.  It is on by default.
+IF you want to disable it you can disable it from the commandline
+```
+> cmake -DINCLUDE_SIDEBAND_RDMA=OFF ../..
+```
+
+## Building on NI Linux RT
 
 Install required packages not installed by default
 

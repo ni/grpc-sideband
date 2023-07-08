@@ -173,7 +173,7 @@ int32_t _SIDEBAND_FUNC QueueSidebandConnection(::SidebandStrategy strategy, cons
 {
     switch (strategy)
     {
-#if ENABLE_RDMA_SIDEBAND
+#ifdef ENABLE_RDMA_SIDEBAND
         case ::SidebandStrategy::RDMA:
         case ::SidebandStrategy::RDMA_LOW_LATENCY:
             RdmaSidebandData::QueueSidebandConnection(strategy, id, waitForReader, waitForWriter, bufferSize);
@@ -216,7 +216,7 @@ int32_t _SIDEBAND_FUNC InitOwnerSidebandData(::SidebandStrategy strategy, int64_
         case ::SidebandStrategy::SOCKETS_LOW_LATENCY:
             strcpy(out_sideband_id, NextConnectionId().c_str());
             return 0;
-#if ENABLE_RDMA_SIDEBAND
+#ifdef ENABLE_RDMA_SIDEBAND
         case ::SidebandStrategy::RDMA:
         case ::SidebandStrategy::RDMA_LOW_LATENCY:
             strcpy(out_sideband_id, NextConnectionId().c_str());
@@ -256,7 +256,7 @@ int32_t _SIDEBAND_FUNC InitClientSidebandData(const char* sidebandServiceUrl, ::
         case ::SidebandStrategy::SOCKETS_LOW_LATENCY:
             sidebandData = SocketSidebandData::ClientInit(sidebandServiceUrl, usageId, bufferSize, strategy == ::SidebandStrategy::SOCKETS_LOW_LATENCY);
             break;
-#if ENABLE_RDMA_SIDEBAND
+#ifdef ENABLE_RDMA_SIDEBAND
         case ::SidebandStrategy::RDMA:
             sidebandData = RdmaSidebandData::ClientInit(sidebandServiceUrl, false, usageId, bufferSize);
             insert = false;
@@ -326,7 +326,7 @@ int32_t _SIDEBAND_FUNC CloseSidebandData(int64_t dataToken)
 std::string GetConnectionAddress(::SidebandStrategy strategy)
 {
     std::string address;
-    #if ENABLE_RDMA_SIDEBAND
+    #ifdef ENABLE_RDMA_SIDEBAND
         if (strategy == ::SidebandStrategy::RDMA ||
             strategy == ::SidebandStrategy::RDMA_LOW_LATENCY)
         {
