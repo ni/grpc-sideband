@@ -42,7 +42,13 @@ add_library(ni_grpc_sideband SHARED
   src/sideband_shared_memory.cc
   src/sideband_rdma.cc
   )
-target_link_libraries(ni_grpc_sideband
-  ${_REFLECTION}
-  easyrdma
+if (INCLUDE_SIDEBAND_RDMA)
+  target_link_libraries(ni_grpc_sideband
+    ${_REFLECTION}
+    easyrdma
   )
+else()
+  target_link_libraries(ni_grpc_sideband
+    ${_REFLECTION}
+  )
+endif()
