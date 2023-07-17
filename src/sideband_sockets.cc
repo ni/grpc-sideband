@@ -29,6 +29,7 @@
 #ifndef _WIN32
 #define SOCKET int
 #define INVALID_SOCKET 0
+#define SOCKET_ERROR -1
 #endif
 
 //---------------------------------------------------------------------
@@ -74,11 +75,21 @@ SocketSidebandData::~SocketSidebandData()
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
+int GetSocketError()
+{
+#ifndef _WIN32
+    return errno;
+#else
+    return WSAGetLastError();
+#endif
+}
+
+//---------------------------------------------------------------------
+//---------------------------------------------------------------------
 void SocketSidebandData::ConnectToSocket(std::string address, std::string port, std::string usageId, bool lowLatency)
 {
-#ifdef _WIN32
     struct addrinfo hints;
-    ZeroMemory(&hints, sizeof(hints));
+    memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_TCP;
@@ -95,13 +106,17 @@ void SocketSidebandData::ConnectToSocket(std::string address, std::string port, 
         _socket = socket(current->ai_family, SOCK_STREAM, IPPROTO_TCP);
         if (_socket == INVALID_SOCKET)
         {
-            std::cout << "socket failed with error: " << WSAGetLastError() << std::endl;
+            std::cout << "socket failed with error: " << GetSocketError() << std::endl;
             return;
         }
         result = connect(_socket, current->ai_addr, (int)current->ai_addrlen);
         if (result == SOCKET_ERROR)
         {
+#ifdef _WIN32
             closesocket(_socket);
+#else
+            close(_socket);
+#endif
             _socket = INVALID_SOCKET;
             continue;
         }
@@ -113,33 +128,6 @@ void SocketSidebandData::ConnectToSocket(std::string address, std::string port, 
         std::cout << "Unable to connect to server!" << std::endl;
         return;
     }
-#else
-    int portno;
-    struct sockaddr_in serv_addr;
-    struct hostent *server;
-    portno = atoi(port.c_str());
-    _socket = socket(AF_INET, SOCK_STREAM, 0);
-    if (_socket < 0) 
-    {
-        std::cout << "ERROR opening socket" << std::endl;
-        return;
-    }
-    server = gethostbyname(address.c_str());
-    if (server == NULL)
-    {
-        std::cout << "ERROR, no such host" << std::endl;
-        return;
-    }
-    memset((char*)&serv_addr, 0, sizeof(serv_addr));
-    serv_addr.sin_family = AF_INET;
-    memcpy((char*)server->h_addr, (char*)&serv_addr.sin_addr.s_addr, server->h_length);
-    serv_addr.sin_port = htons(portno);
-    if (connect(_socket, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
-    { 
-        std::cout << "ERROR connecting" << std::endl;
-        return;
-    }
-#endif
 
     if (lowLatency)
     {
