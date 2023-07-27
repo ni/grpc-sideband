@@ -77,6 +77,29 @@ IF you want to disable it you can disable it from the commandline
 > cmake -DINCLUDE_SIDEBAND_RDMA=OFF ../..
 ```
 
+### Static library support
+This project builds a shared library by default.
+To build a static library instead, enable it from the command line:
+
+```
+> cmake -DSIDEBAND_STATIC=ON ../..
+```
+
+### Specifying an install target directory
+This project creates a `make install` target by default.
+It is recommended to not install to system directories (default).
+Specify an alternative install directory from the command line:
+
+```
+> cmake -DCMAKE_INSTALL_PREFIX=/opt/grpc-sideband
+```
+
+To disable the make install target:
+
+```
+> cmake -DSIDEBAND_INSTALL=OFF
+```
+
 ## Building on NI Linux RT
 
 Install required packages not installed by default
