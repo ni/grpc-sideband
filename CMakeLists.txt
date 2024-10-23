@@ -4,7 +4,8 @@ cmake_minimum_required(VERSION 3.5.1)
 
 project(ni-grpc-sideband C CXX)
 
-option(INCLUDE_SIDEBAND_RDMA "Include support for RDMA sideband transfers" ON)
+option(INCLUDE_SIDEBAND_RDMA "Include support for RDMA sideband transfers" OFF)
+option(SIDEBAND_STATIC "Build static library, disabled by default" OFF)
 
 if(NOT MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
@@ -36,7 +37,13 @@ include_directories("${CMAKE_CURRENT_BINARY_DIR}" "./src")
 #----------------------------------------------------------------------
 # perftest gRPC Server
 #----------------------------------------------------------------------
-add_library(ni_grpc_sideband SHARED
+if(SIDEBAND_STATIC)
+  set(LIB_TYPE STATIC)
+else()
+  set(LIB_TYPE SHARED)
+endif()
+
+add_library(ni_grpc_sideband ${LIB_TYPE}
   src/sideband_data.cc
   src/sideband_sockets.cc
   src/sideband_shared_memory.cc
