@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.5.1)
 
 project(ni-grpc-sideband C CXX)
 
-option(INCLUDE_SIDEBAND_RDMA "Include support for RDMA sideband transfers" OFF)
+option(INCLUDE_SIDEBAND_RDMA "Include support for RDMA sideband transfers" ON)
 option(SIDEBAND_STATIC "Build static library, disabled by default" OFF)
 
 if(NOT MSVC)
