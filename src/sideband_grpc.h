@@ -1,6 +1,9 @@
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
 #pragma once
+// TODO: Evaluate the warning for data loss between int64_t to int and size_t to int
+#pragma warning(disable : 4244)
+#pragma warning(disable : 4267)
 
 #include <data_moniker.pb.h>
 #include <sideband_data.h>
