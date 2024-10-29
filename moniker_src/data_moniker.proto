@@ -1,30 +1,17 @@
-//---------------------------------------------------------------------
-//---------------------------------------------------------------------
 syntax = "proto3";
 
-//---------------------------------------------------------------------
-//---------------------------------------------------------------------
-import "google/protobuf/any.proto";
-
-//---------------------------------------------------------------------
-//---------------------------------------------------------------------
-package ni.data_monikers.v1;
-
-//---------------------------------------------------------------------
-//---------------------------------------------------------------------
+option cc_enable_arenas = true;
 option csharp_namespace = "NationalInstruments.DataMonikers";
 
-//---------------------------------------------------------------------
-//---------------------------------------------------------------------
-service MonikerService {
+package ni.data_monikers;
+
+import "google/protobuf/any.proto";
+
+service DataMoniker {
   rpc BeginSidebandStream(BeginMonikerSidebandStreamRequest) returns (BeginMonikerSidebandStreamResponse) {};
-  
-  rpc StreamRead(MonikerList) returns (stream MonikerReadResult) {};
+  rpc StreamReadWrite(stream MonikerWriteRequest) returns (stream MonikerReadResponse) {};
+  rpc StreamRead(MonikerList) returns (stream MonikerReadResponse) {};
   rpc StreamWrite(stream MonikerWriteRequest) returns (stream StreamWriteResponse) {};
-  rpc StreamReadWrite(stream MonikerWriteRequest) returns (stream MonikerReadResult) {};
-  
-  rpc ReadFromMoniker(Moniker) returns (stream ReadFromMonikerResult) {};
-  rpc WriteToMoniker(stream WriteToMonikerRequest) returns (stream WriteToMonikerResponse) {};
 }
 
 enum SidebandStrategy
@@ -45,7 +32,7 @@ message BeginMonikerSidebandStreamRequest {
   MonikerList monikers = 2;
 }
 
-message BeginMonikerSidebandStreamResponse {  
+message BeginMonikerSidebandStreamResponse {
   SidebandStrategy strategy = 1;
   string connection_url = 2;
   string sideband_identifier = 3;
@@ -65,12 +52,11 @@ message MonikerWriteRequest {
   }
 }
 
-message MonikerReadResult {
+message MonikerReadResponse {
   MonikerValues data = 1;
 }
 
 message MonikerList {
-  bool is_initial_write = 1;
   repeated Moniker read_monikers = 2;
   repeated Moniker write_monikers = 3;
 }
@@ -90,16 +76,4 @@ message SidebandReadResponse {
 }
 
 message StreamWriteResponse {
-}
-
-message ReadFromMonikerResult {
-  google.protobuf.Any value = 1;
-}
-
-message WriteToMonikerRequest {
-  Moniker moniker = 1;
-  google.protobuf.Any value = 2;
-}
-
-message WriteToMonikerResponse {
 }
