@@ -51,7 +51,7 @@ add_library(ni_grpc_sideband ${LIB_TYPE}
   )
 target_include_directories(ni_grpc_sideband
   PUBLIC
-	  src
+    src
     moniker_src)
 
 if (INCLUDE_SIDEBAND_RDMA)
