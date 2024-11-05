@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------
 #----------------------------------------------------------------------
-cmake_minimum_required(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.12.0)
 
 project(ni-grpc-sideband C CXX)
 
@@ -49,6 +49,11 @@ add_library(ni_grpc_sideband ${LIB_TYPE}
   src/sideband_shared_memory.cc
   src/sideband_rdma.cc
   )
+target_include_directories(ni_grpc_sideband
+  PUBLIC
+	  src
+    moniker_src)
+
 if (INCLUDE_SIDEBAND_RDMA)
   target_link_libraries(ni_grpc_sideband
     ${_REFLECTION}
