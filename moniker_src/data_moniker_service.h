@@ -41,7 +41,7 @@ namespace ni::data_monikers
         std::map<std::string, MonikerEndpointPtr> _endpoints;
 
     private:
-        void InitiateMonikerList(const MonikerList& monikers, EndpointList* readers, EndpointList* writers);
+        void InitializeMonikerList(const MonikerList& monikers, EndpointList* readers, EndpointList* writers);
         static void RunSidebandReadWriteLoop(std::string sidebandIdentifier, ::SidebandStrategy strategy, EndpointList* readers, EndpointList* writers);
     };
 }

@@ -72,7 +72,7 @@ namespace ni::data_monikers
 
     //---------------------------------------------------------------------
     //---------------------------------------------------------------------
-    void DataMonikerService::InitiateMonikerList(const MonikerList& monikers, EndpointList* readers, EndpointList* writers)
+    void DataMonikerService::InitializeMonikerList(const MonikerList& monikers, EndpointList* readers, EndpointList* writers)
     {
         for (auto readMoniker: monikers.read_monikers())
         {
@@ -111,7 +111,6 @@ namespace ni::data_monikers
             strategy == ::SidebandStrategy::SOCKETS_LOW_LATENCY)
         {
             pid_t threadId = syscall(SYS_gettid);
-            ::SysFsWrite("/dev/cgroup/cpuset/LabVIEW_tl_set/tasks", std::to_string(threadId));
 
             cpu_set_t cpuSet;
             CPU_ZERO(&cpuSet);
@@ -201,7 +200,7 @@ namespace ni::data_monikers
 
         auto writers = new EndpointList();
         auto readers = new EndpointList();
-        InitiateMonikerList(request->monikers(), readers, writers);
+        InitializeMonikerList(request->monikers(), readers, writers);
 
         std::cout << "Starting thread with RunSidebandReadWriteLoop()" << std::endl;
         auto thread = new std::thread(RunSidebandReadWriteLoop, identifier, strategy, readers, writers);
@@ -219,7 +218,7 @@ namespace ni::data_monikers
         EndpointList readers;
         MonikerWriteRequest writeRequest;
         stream->Read(&writeRequest);
-        InitiateMonikerList(writeRequest.monikers(), &readers, &writers);
+        InitializeMonikerList(writeRequest.monikers(), &readers, &writers);
 
         google::protobuf::Arena arena;
         while (stream->Read(&writeRequest) && !context->IsCancelled())
@@ -248,7 +247,7 @@ namespace ni::data_monikers
     {
         EndpointList writers;
         EndpointList readers;
-        InitiateMonikerList(*request, &readers, &writers);
+        InitializeMonikerList(*request, &readers, &writers);
 
         google::protobuf::Arena arena;
         while (!context->IsCancelled())
@@ -280,7 +279,7 @@ namespace ni::data_monikers
         EndpointList readers;
         MonikerWriteRequest writeRequest;
         stream->Read(&writeRequest);
-        InitiateMonikerList(writeRequest.monikers(), &readers, &writers);
+        InitializeMonikerList(writeRequest.monikers(), &readers, &writers);
 
         int x = 0;
         google::protobuf::Arena arena;

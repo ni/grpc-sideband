@@ -3,7 +3,7 @@ syntax = "proto3";
 option cc_enable_arenas = true;
 option csharp_namespace = "NationalInstruments.DataMonikers";
 
-package ni.data_monikers;
+package ni.data_monikers.v1;
 
 import "google/protobuf/any.proto";
 
