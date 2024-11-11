@@ -1,5 +1,3 @@
-//---------------------------------------------------------------------
-//---------------------------------------------------------------------
 #include <thread>
 #include <tuple>
 #include <sideband_data.h>
@@ -12,6 +10,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <memory>
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
@@ -102,7 +101,7 @@ namespace ni::data_monikers
 
     //---------------------------------------------------------------------
     //---------------------------------------------------------------------
-    void DataMonikerService::RunSidebandReadWriteLoop(string sidebandIdentifier, ::SidebandStrategy strategy, EndpointList* readers, EndpointList* writers)
+    void DataMonikerService::RunSidebandReadWriteLoop(string sidebandIdentifier, ::SidebandStrategy strategy, std::shared_ptr<EndpointList> readers, std::shared_ptr<EndpointList> writers)
     {
         std::cout << "Enter RunSidebandReadWriteLoop" << std::endl;
 
@@ -174,10 +173,8 @@ namespace ni::data_monikers
                 break;
             }
             arena.Reset();
-    		std::this_thread::sleep_for(std::chrono::microseconds(10));
+            std::this_thread::sleep_for(std::chrono::microseconds(10));
         }
-        delete readers;
-        delete writers;
         CloseSidebandData(sidebandToken);
         std::cout << "Exit RunSidebandReadWriteLoop" << std::endl;
     }
@@ -198,12 +195,12 @@ namespace ni::data_monikers
         response->set_buffer_size(bufferSize);
         QueueSidebandConnection(strategy, identifier, true, true, bufferSize);
 
-        auto writers = new EndpointList();
-        auto readers = new EndpointList();
-        InitializeMonikerList(request->monikers(), readers, writers);
+        auto writers = std::make_shared<EndpointList>();
+        auto readers = std::make_shared<EndpointList>();
+        InitializeMonikerList(request->monikers(), readers.get(), writers.get());
 
         std::cout << "Starting thread with RunSidebandReadWriteLoop()" << std::endl;
-        auto thread = new std::thread(RunSidebandReadWriteLoop, identifier, strategy, readers, writers);
+        auto thread = std::make_shared<std::thread>(&DataMonikerService::RunSidebandReadWriteLoop, this, identifier, strategy, readers, writers);
         thread->detach();
 
         std::cout << "Exit BeginSidebandStream" << std::endl;
