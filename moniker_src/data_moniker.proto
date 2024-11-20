@@ -7,7 +7,7 @@ package ni.data_monikers.v1;
 
 import "google/protobuf/any.proto";
 
-service DataMoniker {
+service MonikerService {
   rpc BeginSidebandStream(BeginMonikerSidebandStreamRequest) returns (BeginMonikerSidebandStreamResponse) {};
   rpc StreamReadWrite(stream MonikerWriteRequest) returns (stream MonikerReadResponse) {};
   rpc StreamRead(MonikerList) returns (stream MonikerReadResponse) {};

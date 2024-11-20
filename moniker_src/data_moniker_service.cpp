@@ -109,13 +109,14 @@ namespace ni::data_monikers
         if (strategy == ::SidebandStrategy::RDMA_LOW_LATENCY ||
             strategy == ::SidebandStrategy::SOCKETS_LOW_LATENCY)
         {
-            pid_t threadId = syscall(SYS_gettid);
+            // TODO: We need to decide if we need to set the cpu affinity for the thread
+            // pid_t threadId = syscall(SYS_gettid);
 
-            cpu_set_t cpuSet;
-            CPU_ZERO(&cpuSet);
-            CPU_SET(8, &cpuSet);
-            //CPU_SET(8, &cpuSet);
-            sched_setaffinity(threadId, sizeof(cpu_set_t), &cpuSet);
+            // cpu_set_t cpuSet;
+            // CPU_ZERO(&cpuSet);
+            // CPU_SET(8, &cpuSet);
+            // //CPU_SET(8, &cpuSet);
+            // sched_setaffinity(threadId, sizeof(cpu_set_t), &cpuSet);
         }
     #endif
 
@@ -173,7 +174,6 @@ namespace ni::data_monikers
                 break;
             }
             arena.Reset();
-            std::this_thread::sleep_for(std::chrono::microseconds(10));
         }
         CloseSidebandData(sidebandToken);
         std::cout << "Exit RunSidebandReadWriteLoop" << std::endl;
@@ -200,7 +200,7 @@ namespace ni::data_monikers
         InitializeMonikerList(request->monikers(), readers.get(), writers.get());
 
         std::cout << "Starting thread with RunSidebandReadWriteLoop()" << std::endl;
-        auto thread = std::make_shared<std::thread>(&DataMonikerService::RunSidebandReadWriteLoop, this, identifier, strategy, readers, writers);
+        auto thread = std::make_shared<std::thread>(&DataMonikerService::RunSidebandReadWriteLoop, identifier, strategy, readers, writers);
         thread->detach();
 
         std::cout << "Exit BeginSidebandStream" << std::endl;
@@ -266,10 +266,11 @@ namespace ni::data_monikers
     Status DataMonikerService::StreamWrite(ServerContext* context, ServerReaderWriter<StreamWriteResponse, MonikerWriteRequest>* stream)
     {
     #ifndef _WIN32
-        cpu_set_t cpuSet;
-        CPU_ZERO(&cpuSet);
-        CPU_SET(1, &cpuSet);
-        sched_setaffinity(0, sizeof(cpu_set_t), &cpuSet);
+        // TODO: We need to decide if we need to set the cpu affinity for the thread
+        // cpu_set_t cpuSet;
+        // CPU_ZERO(&cpuSet);
+        // CPU_SET(1, &cpuSet);
+        // sched_setaffinity(0, sizeof(cpu_set_t), &cpuSet);
     #endif
 
         EndpointList writers;
