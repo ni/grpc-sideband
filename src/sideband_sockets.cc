@@ -35,6 +35,7 @@
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
 static std::string s_SidebandSocketsAddress;
+static int s_SidebandSocketsPort;
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
@@ -340,6 +341,17 @@ std::string GetSocketsAddress()
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
+std::string GetSocketsPort()
+{
+    if (s_SidebandSocketsPort > 0)
+    {
+        return ":" + std::to_string(s_SidebandSocketsPort);
+    }
+    return ":50055";
+}
+
+//---------------------------------------------------------------------
+//---------------------------------------------------------------------
 int32_t _SIDEBAND_FUNC RunSidebandSocketsAccept(const char* address, int port)
 {
     int sockfd, newsockfd;
@@ -352,6 +364,7 @@ int32_t _SIDEBAND_FUNC RunSidebandSocketsAccept(const char* address, int port)
 #endif
 
     s_SidebandSocketsAddress = address;
+    s_SidebandSocketsPort = port;
 
     // create a socket
     sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
