@@ -210,4 +210,3 @@ std::string GetRdmaAddress();
 #endif
 
 std::string GetSocketsAddress();
-std::string GetSocketsPort();

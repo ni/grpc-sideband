@@ -334,10 +334,10 @@ std::string GetConnectionAddress(::SidebandStrategy strategy)
         }
         else
         {
-            address = GetSocketsAddress() + GetSocketsPort();
+            address = GetSocketsAddress() + ":50055";
         }
     #else
-        address = GetSocketsAddress() + GetSocketsPort();
+        address = GetSocketsAddress() + ":50055";
     #endif
     std::cout << "Connection address: " << address << std::endl;
     return address;
