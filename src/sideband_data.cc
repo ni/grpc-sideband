@@ -332,12 +332,11 @@ std::string GetConnectionAddress(::SidebandStrategy strategy)
         {
             address = GetRdmaAddress() + ":50060";
         }
-        else
         {
-            address = GetSocketsAddress() + ":50055";
+            address = GetSocketsAddress() + ":" + GetSocketsPort();
         }
     #else
-        address = GetSocketsAddress() + ":50055";
+        address = GetSocketsAddress() + ":" + GetSocketsPort();
     #endif
     std::cout << "Connection address: " << address << std::endl;
     return address;
