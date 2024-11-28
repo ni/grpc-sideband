@@ -340,7 +340,7 @@ std::string GetSocketsAddress()
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
-int32_t _SIDEBAND_FUNC RunSidebandSocketsAccept(const char* address, int port)
+int32_t _SIDEBAND_FUNC RunSidebandSocketsAccept(const char* address, int port, std::atomic<bool>& stop_flag)
 {
     int sockfd, newsockfd;
     socklen_t clilen;
@@ -376,24 +376,54 @@ int32_t _SIDEBAND_FUNC RunSidebandSocketsAccept(const char* address, int port)
     listen(sockfd, 5);
 
     std::cout << "Listening for sideband sockets at: " << address << ":" << port << std::endl;
-    while (true)
+
+    while (!stop_flag.load())
     {
-        sockaddr_in cli_addr {};
-        clilen = sizeof(cli_addr);
-        newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
-        if (newsockfd < 0)
-        { 
-            std::cout << "ERROR on accept" << std::endl;
+        fd_set read_fds;
+        FD_ZERO(&read_fds);
+        FD_SET(sockfd, &read_fds);
+
+        struct timeval timeout;
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 1000000; // 1000ms timeout
+
+        int activity = select(sockfd + 1, &read_fds, nullptr, nullptr, &timeout);
+
+        if (activity < 0)
+        {
+            std::cout << "ERROR on select" << std::endl;
             return -1;
         }
-        std::cout << "Connection!" << std::endl;
 
-        SocketSidebandData::InitFromConnection(newsockfd);
+        if (activity == 0)
+        {
+            // Timed out, continue the loop.
+            continue;
+        }
+
+        if (FD_ISSET(sockfd, &read_fds))
+        {
+            sockaddr_in cli_addr{};
+            clilen = sizeof(cli_addr);
+            newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+            if (newsockfd < 0)
+            { 
+                std::cout << "ERROR on accept" << std::endl;
+                return -1;
+            }
+
+            std::cout << "Connection!" << std::endl;
+            SocketSidebandData::InitFromConnection(newsockfd);
+        }
     }
+
+    std::cout << "Closing socket..." << std::endl;
+
 #ifdef _WIN32
     closesocket(sockfd);
 #else
     close(sockfd);
 #endif
-    return 0; 
+
+    return 0;
 }
