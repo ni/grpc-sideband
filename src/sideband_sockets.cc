@@ -370,7 +370,7 @@ int32_t _SIDEBAND_FUNC RunSidebandSocketsAccept(const char* address, int port)
     sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (sockfd < 0)
     {
-       std::cout << "ERROR opening socket" << std::endl;
+       std::cout << "Unable to open socket. Sideband streaming will be disabled." << std::endl;
        return -1;
     }
 
@@ -382,7 +382,7 @@ int32_t _SIDEBAND_FUNC RunSidebandSocketsAccept(const char* address, int port)
 
     if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
     {
-       std::cout << "ERROR on binding" << std::endl;
+       std::cout << "Unable to bind on " << address << ":" << port << ". Sideband streaming will be disabled."<< std::endl;
        return -1;
     }
 
