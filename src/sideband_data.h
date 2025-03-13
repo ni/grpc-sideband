@@ -53,7 +53,7 @@ int32_t _SIDEBAND_FUNC CloseSidebandData(int64_t dataToken);
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
-int32_t _SIDEBAND_FUNC RunSidebandSocketsAccept(const char* address, int port, std::atomic<bool>& stop_flag);
+int32_t _SIDEBAND_FUNC RunSidebandSocketsAccept(const char* address, int port);
 int32_t _SIDEBAND_FUNC AcceptSidebandRdmaSendRequests();
 int32_t _SIDEBAND_FUNC AcceptSidebandRdmaReceiveRequests();
 int32_t _SIDEBAND_FUNC GetSidebandConnectionAddress(::SidebandStrategy strategy, char address[1024]);
