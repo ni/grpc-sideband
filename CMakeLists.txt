@@ -55,6 +55,9 @@ target_include_directories(ni_grpc_sideband
     moniker_src)
 
 if (INCLUDE_SIDEBAND_RDMA)
+  target_include_directories(ni_grpc_sideband PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/easyrdma/core/api
+  )
   target_link_libraries(ni_grpc_sideband
     ${_REFLECTION}
     easyrdma
