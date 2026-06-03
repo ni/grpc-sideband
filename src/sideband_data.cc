@@ -351,7 +351,7 @@ std::string GetConnectionAddress(::SidebandStrategy strategy)
 //---------------------------------------------------------------------
 int32_t _SIDEBAND_FUNC GetSidebandConnectionAddress(::SidebandStrategy strategy, char address[1024])
 {
-    sprintf(address, GetConnectionAddress(strategy).c_str());
+    sprintf(address, "%s", GetConnectionAddress(strategy).c_str());
     return 0;
 }
 
